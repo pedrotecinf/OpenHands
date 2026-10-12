@@ -32,6 +32,7 @@ __pycache__
 ralph/
 .vercel
 *.tgz
+!/vendor/openhands-typescript-client-1.54.0.tgz
 
 # Local runtime artifacts produced by static-server / agent-server runs
 workspace/

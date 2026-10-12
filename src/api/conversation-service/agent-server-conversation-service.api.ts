@@ -706,6 +706,10 @@ class AgentServerConversationService {
         // Fallback when active_profile can't be resolved (e.g. an ACP parent).
         parentAgentProfileId:
           parent?.launched_agent_profile?.agent_profile_id ?? null,
+        parentAcpServer:
+          parent?.agent_kind === "acp" ? parent.acp_server : undefined,
+        parentAcpModel:
+          parent?.agent_kind === "acp" ? parent.llm_model : undefined,
         initialMessage,
       });
 
@@ -1249,6 +1253,12 @@ class AgentServerConversationService {
       conversationId,
       model,
     );
+  }
+
+  static async reloadMCP(conversationId: string) {
+    return new ConversationClient(
+      getAgentServerClientOptions({ timeout: 180000 }),
+    ).reloadMCP(conversationId);
   }
 }
 

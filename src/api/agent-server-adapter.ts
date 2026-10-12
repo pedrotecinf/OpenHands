@@ -51,6 +51,7 @@ import {
 } from "#/utils/skill-enablement";
 import SettingsService from "./settings-service/settings-service.api";
 import MetaProfilesService from "./meta-profiles-service/meta-profiles-service.api";
+import ProfilesService from "./profiles-service/profiles-service.api";
 import { getStoredConversationMetadata } from "./conversation-metadata-store";
 import LLMSubscriptionService from "./llm-subscription-service";
 import {
@@ -1688,6 +1689,8 @@ export async function buildStartPlanningConversationRequestWithEncryptedSettings
    * launch-time snapshot rather than anything the ACP agent itself runs).
    */
   parentAgentProfileId?: string | null;
+  parentAcpServer?: string | null;
+  parentAcpModel?: string | null;
   initialMessage?: string;
   /** The server's `execution_runtime` — threads through to workspace selection. */
   executionRuntime?: AgentServerInfo["execution_runtime"];
@@ -1699,13 +1702,46 @@ export async function buildStartPlanningConversationRequestWithEncryptedSettings
     SecretsService.getSecrets(),
   ]);
 
-  const profileLlm =
+  let profileLlm =
     (options.parentActiveProfileName
       ? await resolveLlmProfileSettings(options.parentActiveProfileName)
       : null) ??
     (options.parentAgentProfileId
       ? await resolveAgentProfileLlmSettings(options.parentAgentProfileId)
       : null);
+  if (options.parentAcpServer) {
+    const profiles = await ProfilesService.listProfiles();
+    const prefix =
+      options.parentAcpServer === "claude-code"
+        ? "anthropic/"
+        : options.parentAcpServer === "codex"
+          ? "openai/"
+          : null;
+    const compatible = profiles.profiles.filter(
+      (profile) => !prefix || (profile.model ?? "").startsWith(prefix),
+    );
+    const selected =
+      compatible.find(
+        (profile) => profile.model === `${prefix}${options.parentAcpModel}`,
+      ) ??
+      compatible.find((profile) => profile.name === profiles.active_profile) ??
+      compatible[0];
+    if (!selected) {
+      throw new Error(
+        "Configure a saved LLM profile for the ACP provider before building a plan.",
+      );
+    }
+    profileLlm = (await ProfilesService.getProfile(selected.name, "encrypted"))
+      .config;
+  } else if (!profileLlm && settingsResult.agentSettings.agent_kind === "acp") {
+    const profiles = await ProfilesService.listProfiles();
+    if (!profiles.active_profile) {
+      throw new Error("Select a saved LLM profile before building a plan.");
+    }
+    profileLlm = (
+      await ProfilesService.getProfile(profiles.active_profile, "encrypted")
+    ).config;
+  }
   const encryptedAgentSettings: Record<string, SettingsValue> = profileLlm
     ? { ...settingsResult.agentSettings, llm: profileLlm as SettingsValue }
     : settingsResult.agentSettings;
@@ -1721,7 +1757,7 @@ export async function buildStartPlanningConversationRequestWithEncryptedSettings
   return buildStartPlanningConversationRequest({
     ...options,
     encryptedAgentSettings,
-    secretsEncrypted: settingsResult.secretsEncrypted,
+    secretsEncrypted: Boolean(profileLlm) || settingsResult.secretsEncrypted,
     customSecrets,
     maxIterations,
     skillEnablement: settingsResult.skillEnablement,
@@ -1789,8 +1825,32 @@ export async function buildStartConversationRequestWithEncryptedSettings(options
     MetaProfilesService.listMetaProfiles().catch(() => null),
   ]);
 
-  const { agentSettings, conversationSettings, secretsEncrypted } =
-    settingsResult;
+  const { conversationSettings } = settingsResult;
+  let { agentSettings, secretsEncrypted } = settingsResult;
+  if (
+    !options.agentProfileId &&
+    options.agentProfileKind === "openhands" &&
+    toRecord(agentSettings).agent_kind === "acp"
+  ) {
+    const profiles = await ProfilesService.listProfiles();
+    if (!profiles.active_profile) {
+      throw new Error(
+        "The selected OpenHands agent has no active LLM profile.",
+      );
+    }
+    const selected = await ProfilesService.getProfile(
+      profiles.active_profile,
+      "encrypted",
+    );
+    const shared = agentSettings;
+    agentSettings = {
+      agent_kind: "openhands",
+      llm: selected.config as SettingsValue,
+      mcp_config: shared.mcp_config,
+      agent_context: shared.agent_context,
+    };
+    secretsEncrypted = true;
+  }
   const runtimeServicesInfo = parseRuntimeServicesInfo(
     (serverInfo as { runtime_services?: unknown } | null)?.runtime_services,
   );

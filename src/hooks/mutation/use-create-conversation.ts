@@ -308,7 +308,9 @@ export const useCreateConversation = ({
                 // so the title and the agent steps share a model (#16885).
                 agentLlmProfileRef: resolvedAgentProfile?.llm_profile_ref,
               }
-            : {}),
+            : resolvedAgentProfile?.agent_kind === "openhands"
+              ? { agentProfileKind: "openhands" }
+              : {}),
           // Only stamp the toggle when it's on so the default path stays
           // byte-identical to the legacy launch (and the e2e snapshot tests
           // that assert the exact createConversation payload). The active

@@ -25,7 +25,7 @@ vi.mock("./agent-profiles-service/agent-profiles-service.api", () => ({
   default: { listProfiles: vi.fn() },
 }));
 vi.mock("./profiles-service/profiles-service.api", () => ({
-  default: { getProfile: vi.fn() },
+  default: { getProfile: vi.fn(), listProfiles: vi.fn() },
 }));
 
 const encryptedValue = "gAAAAAencrypted-mcp-header";
@@ -538,6 +538,50 @@ describe("buildStartPlanningConversationRequestWithEncryptedSettings", () => {
     expect(payload.agent.llm).toMatchObject({
       model: "openhands/globally-active-model",
     });
+  });
+
+  it("uses a saved authenticated Claude LLM for a Claude ACP planner", async () => {
+    vi.mocked(SettingsService.getSettingsForConversation).mockResolvedValue({
+      ...globallyActiveSettings,
+      agentSettings: {
+        agent_kind: "acp",
+        acp_server: "codex",
+        acp_model: "gpt-5.6-sol",
+      },
+      secretsEncrypted: false,
+    });
+    vi.mocked(ProfilesService.listProfiles).mockResolvedValue({
+      profiles: [
+        {
+          name: "claude-custom-opus",
+          model: "anthropic/cc-opus",
+          api_key_set: true,
+          base_url: "https://example.com",
+        },
+      ],
+      active_profile: "claude-custom-opus",
+    });
+    vi.mocked(ProfilesService.getProfile).mockResolvedValue({
+      name: "claude-custom-opus",
+      api_key_set: true,
+      config: {
+        model: "anthropic/cc-opus",
+        api_key: "gAAAAAencrypted-claude-key",
+        base_url: "https://example.com",
+      },
+    });
+    const payload =
+      await buildStartPlanningConversationRequestWithEncryptedSettings({
+        workingDir: "/workspace/project",
+        parentConversationId: "claude-parent",
+        parentAcpServer: "claude-code",
+        parentAcpModel: "cc-opus",
+      });
+    expect(payload.agent.llm).toMatchObject({
+      model: "anthropic/cc-opus",
+      api_key: "gAAAAAencrypted-claude-key",
+    });
+    expect(payload.secrets_encrypted).toBe(true);
   });
 
   it("prefers the parent conversation's current active_profile over its launched agent profile", async () => {

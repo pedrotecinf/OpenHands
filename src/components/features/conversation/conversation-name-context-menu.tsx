@@ -24,6 +24,7 @@ import CopyIcon from "#/icons/copy.svg?react";
 import { ConversationNameContextMenuIconText } from "./conversation-name-context-menu-icon-text";
 import { ArchivedDisabledTooltip } from "../context-menu/archived-disabled-tooltip";
 import { useIsArchivedConversation } from "#/hooks/use-is-archived-conversation";
+import { ReloadMcpMenuItem } from "./reload-mcp-menu-item";
 
 interface ConversationNameContextMenuProps {
   onClose: () => void;
@@ -236,6 +237,17 @@ export function ConversationNameContextMenu({
             />
           </ContextMenuListItem>
         </ArchivedDisabledTooltip>
+      )}
+
+      {backend.kind === "local" && conversation && (
+        <ReloadMcpMenuItem
+          conversationId={conversation.id}
+          isDisabled={
+            isArchivedConversation ||
+            conversation.execution_status === "running"
+          }
+          onClose={onClose}
+        />
       )}
 
       {onShowAgentTools && (

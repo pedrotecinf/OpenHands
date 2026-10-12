@@ -210,7 +210,21 @@ function readClientPin() {
   const pkg = JSON.parse(
     readFileSync(join(projectRoot, "package.json"), "utf-8"),
   );
-  return pkg.dependencies?.[CLIENT_PACKAGE_NAME] ?? null;
+  const pin = pkg.dependencies?.[CLIENT_PACKAGE_NAME] ?? null;
+  if (pin?.startsWith("file:vendor/")) {
+    // The fork uses a lockfile-bound archive of the custom client.
+    const installed = JSON.parse(
+      readFileSync(
+        join(projectRoot, "node_modules", CLIENT_PACKAGE_NAME, "package.json"),
+        "utf-8",
+      ),
+    );
+    if (installed.name !== CLIENT_PACKAGE_NAME) {
+      throw new Error("Unexpected vendored TypeScript client package name");
+    }
+    return installed.version;
+  }
+  return pin;
 }
 
 /**

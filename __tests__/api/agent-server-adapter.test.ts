@@ -20,6 +20,7 @@ import {
   type DirectConversationInfo,
 } from "#/api/agent-server-adapter";
 import SettingsService from "#/api/settings-service/settings-service.api";
+import ProfilesService from "#/api/profiles-service/profiles-service.api";
 import { SecretsService } from "#/api/secrets-service";
 import {
   removeStoredConversationMetadata,
@@ -2151,6 +2152,47 @@ describe("buildStartConversationRequestWithEncryptedSettings", () => {
       project_dir: "/workspace/my-project",
     });
     expect(payload.hook_config).toEqual(WORKSPACE_HOOK_CONFIG);
+  });
+
+  it("keeps a native Claude selection when stale global settings describe Codex", async () => {
+    settingsSpy.mockResolvedValue({
+      agentSettings: {
+        agent_kind: "acp",
+        acp_server: "codex",
+        acp_model: "gpt-5.6-sol",
+        mcp_config: { github: { url: "https://example.com/mcp" } },
+      },
+      conversationSettings: DEFAULT_SETTINGS.conversation_settings,
+      secretsEncrypted: true,
+      skillEnablement: { disabledSkills: [] },
+    });
+    const list = vi.spyOn(ProfilesService, "listProfiles").mockResolvedValue({
+      profiles: [],
+      active_profile: "claude-custom-opus",
+    });
+    const detail = vi.spyOn(ProfilesService, "getProfile").mockResolvedValue({
+      name: "claude-custom-opus",
+      config: { model: "anthropic/cc-opus", api_key: "encrypted-fixture" },
+      api_key_set: true,
+    });
+    try {
+      const payload = await buildStartConversationRequestWithEncryptedSettings({
+        settings: DEFAULT_SETTINGS,
+        agentProfileKind: "openhands",
+        hooksProjectDir: null,
+      });
+      expect(payload.agent_settings).toMatchObject({
+        agent_kind: "openhands",
+        llm: { model: "anthropic/cc-opus", api_key: "encrypted-fixture" },
+        mcp_config: { github: { url: "https://example.com/mcp" } },
+      });
+      expect(payload.agent_settings).not.toHaveProperty("acp_server");
+      expect(detail).toHaveBeenCalledWith("claude-custom-opus", "encrypted");
+      expect(payload.secrets_encrypted).toBe(true);
+    } finally {
+      list.mockRestore();
+      detail.mockRestore();
+    }
   });
 
   it("falls back to the configured working dir when no hooksProjectDir is given", async () => {

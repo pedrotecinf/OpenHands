@@ -1,4 +1,38 @@
 {
+  "CONVERSATION$RELOAD_MCP": {
+    "en": "Reload MCPs / restart session",
+    "ja": "MCPを再読み込み / セッションを再起動",
+    "zh-CN": "重新加载 MCP / 重启会话",
+    "zh-TW": "重新載入 MCP / 重啟工作階段",
+    "ko-KR": "MCP 다시 로드 / 세션 재시작",
+    "no": "Last inn MCP-er på nytt / start økten på nytt",
+    "ar": "إعادة تحميل MCP / إعادة تشغيل الجلسة",
+    "de": "MCPs neu laden / Sitzung neu starten",
+    "fr": "Recharger les MCP / redémarrer la session",
+    "it": "Ricarica MCP / riavvia sessione",
+    "pt": "Recarregar MCPs / reiniciar sessão",
+    "es": "Recargar MCP / reiniciar sesión",
+    "ca": "Recarrega MCP / reinicia la sessió",
+    "tr": "MCP’leri yeniden yükle / oturumu yeniden başlat",
+    "uk": "Перезавантажити MCP / перезапустити сеанс"
+  },
+  "CONVERSATION$MCP_RELOADED": {
+    "en": "MCP configuration reloaded. Conversation preserved. Servers: {{servers}}",
+    "ja": "MCP設定を再読み込みしました。会話は保持されました。サーバー: {{servers}}",
+    "zh-CN": "MCP 配置已重新加载，对话已保留。服务器：{{servers}}",
+    "zh-TW": "MCP 設定已重新載入，對話已保留。伺服器：{{servers}}",
+    "ko-KR": "MCP 설정을 다시 로드했습니다. 대화가 유지됩니다. 서버: {{servers}}",
+    "no": "MCP-konfigurasjonen er lastet på nytt. Samtalen er bevart. Servere: {{servers}}",
+    "ar": "تمت إعادة تحميل إعدادات MCP مع الحفاظ على المحادثة. الخوادم: {{servers}}",
+    "de": "MCP-Konfiguration neu geladen. Unterhaltung erhalten. Server: {{servers}}",
+    "fr": "Configuration MCP rechargée. Conversation conservée. Serveurs : {{servers}}",
+    "it": "Configurazione MCP ricaricata. Conversazione conservata. Server: {{servers}}",
+    "pt": "Configuração MCP recarregada. Conversa preservada. Servidores: {{servers}}",
+    "es": "Configuración MCP recargada. Conversación conservada. Servidores: {{servers}}",
+    "ca": "Configuració MCP recarregada. Conversa conservada. Servidors: {{servers}}",
+    "tr": "MCP yapılandırması yeniden yüklendi. Konuşma korundu. Sunucular: {{servers}}",
+    "uk": "Конфігурацію MCP перезавантажено. Розмову збережено. Сервери: {{servers}}"
+  },
   "FILES$DISCOVERY_SETTINGS": {
     "en": "File discovery",
     "ja": "ファイル探索",

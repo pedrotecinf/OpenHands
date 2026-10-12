@@ -36,4 +36,5 @@ Thumbs.db
 # Misc
 artifacts/
 *.tgz
+!vendor/openhands-typescript-client-1.54.0.tgz
 *.log

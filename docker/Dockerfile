@@ -31,6 +31,7 @@ WORKDIR /build
 
 # Cache-friendly: package files first
 COPY package.json package-lock.json ./
+COPY vendor/ /build/vendor/
 RUN npm ci
 
 # Copy everything needed for the build
