@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 ARG BASE_IMAGE=ghcr.io/openhands/agent-canvas@sha256:91b7a217dcbefe8c10562523b043458ed1dfaf8ba770194b319fe754cee03f23
 
-FROM node:24-slim AS frontend
+FROM --platform=$BUILDPLATFORM node:24-slim AS frontend
 WORKDIR /build
 COPY package.json package-lock.json ./
 COPY vendor/ ./vendor/
@@ -27,8 +27,11 @@ COPY fork/openhands-agent-server-launcher /usr/local/bin/openhands-agent-server
 RUN chmod 755 /usr/local/bin/openhands-agent-server
 COPY fork/upgrade.json /opt/agent-canvas/fork/upgrade.json
 COPY fork/smoke_canary.py /opt/agent-canvas/fork/smoke_canary.py
+COPY fork/healthcheck.py /opt/agent-canvas/fork/healthcheck.py
 ENV AGENT_CANVAS_BUILD_GIT_SHA=${CANVAS_FORK_COMMIT}
 LABEL org.opencontainers.image.source="https://github.com/pedrotecinf/OpenHands"
 LABEL org.opencontainers.image.revision="${CANVAS_FORK_COMMIT}"
 LABEL io.pedrotecinf.sdk.revision="${SDK_FORK_COMMIT}"
+HEALTHCHECK --interval=15s --timeout=12s --start-period=60s --retries=3 \
+    CMD python /opt/agent-canvas/fork/healthcheck.py
 USER openhands

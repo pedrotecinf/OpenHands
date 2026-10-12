@@ -22,9 +22,10 @@ Use Node 24 and Docker. From this checkout:
 
 ```sh
 npm ci
-node scripts/build-fork-image.mjs
+node scripts/build-fork-image.mjs --platform linux/amd64
 docker run -d --name openhands-fork-canary --memory=3g \
   -p 127.0.0.1:13800:8000 -e OPENHANDS_FORK_CANARY=1 \
+  -e AGENT_CANVAS_ALLOW_LAN_SESSION_KEY=true \
   pedrotecinf/openhands-canvas:1.27.1-fork
 # Wait for container health to become healthy.
 docker exec openhands-fork-canary python /opt/agent-canvas/fork/smoke_canary.py
@@ -36,6 +37,10 @@ docker exec openhands-fork-canary python /opt/agent-canvas/fork/smoke_canary.py 
 The smoke uses an empty canary state and no paid LLM calls. It discovers a real
 stdio MCP, preserves message IDs, and checks native persistence after restart.
 Never mount the production state or user projects into this canary.
+
+The healthcheck waits for both the backend and unified web listener. Backend
+health alone can become ready before the frontend listener after restart.
+The session-key injection flag above is for this loopback-only canary UI.
 
 ## Deployment acceptance still required
 
