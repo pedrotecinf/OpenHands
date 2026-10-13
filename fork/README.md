@@ -6,6 +6,10 @@ archive. `productionApproved` remains false until the deployment checks pass.
 This fork requires Agent Server 1.54.0 or newer and the fork's MCP reload
 endpoint; use the paired candidate image rather than an unpatched upstream server.
 
+The qualified image has now been deployed to the VPS. See `deployment.md` and
+the source-bound `deployment-approval.json`; `upgrade.json` records the initial
+pre-approval build state.
+
 ## Preserved behavior
 
 - Conversation-scoped MCP reload with busy-run rejection and profile filtering.

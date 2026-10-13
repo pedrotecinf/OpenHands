@@ -1,0 +1,15 @@
+{
+  "productionApproved": true,
+  "canvasCommit": "7bcf40a24a958e8c53df2641872a72df1b7c8371",
+  "sdkCommit": "9f850bf8b3f7a785d5d833dd1e3af1c31f96028d",
+  "deployedImageId": "sha256:436da8ca33669f3226ed30d8b22426ed9b66b9f9b62330a8d1c9e49ecfe867f2",
+  "previousImageId": "sha256:eb4c4276478e28b4c1f10042165c5a04976885dcef155d895441e35c0c98c072",
+  "cutoverBackup": "/opt/openhands-backups/fork-cutover-20261013T025248Z",
+  "conversationsPreserved": 31,
+  "conversationSnapshotEqual": true,
+  "encryptionIdentityPreserved": true,
+  "worktreeOwnershipVerified": "10001:10001",
+  "githubIdentityVerified": "Bot-openhands",
+  "macWebHttp": 200,
+  "windowsWebHttp": 200
+}
