@@ -29,6 +29,8 @@ COPY fork/upgrade.json /opt/agent-canvas/fork/upgrade.json
 COPY fork/smoke_canary.py /opt/agent-canvas/fork/smoke_canary.py
 COPY fork/healthcheck.py /opt/agent-canvas/fork/healthcheck.py
 ENV AGENT_CANVAS_BUILD_GIT_SHA=${CANVAS_FORK_COMMIT}
+ENV OPENHANDS_BUILD_GIT_SHA=${SDK_FORK_COMMIT}
+ENV OPENHANDS_BUILD_GIT_REF=upgrade/1.54.0-mcp-session-persistence
 LABEL org.opencontainers.image.source="https://github.com/pedrotecinf/OpenHands"
 LABEL org.opencontainers.image.revision="${CANVAS_FORK_COMMIT}"
 LABEL io.pedrotecinf.sdk.revision="${SDK_FORK_COMMIT}"

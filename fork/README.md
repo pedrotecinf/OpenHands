@@ -3,6 +3,8 @@
 This branch combines Canvas 1.27.1 with the patched SDK/Agent Server 1.54.0.
 `upgrade.json` binds the official base-image digest, SDK commit, and client
 archive. `productionApproved` remains false until the deployment checks pass.
+This fork requires Agent Server 1.54.0 or newer and the fork's MCP reload
+endpoint; use the paired candidate image rather than an unpatched upstream server.
 
 ## Preserved behavior
 
