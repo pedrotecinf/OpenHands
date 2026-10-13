@@ -1,0 +1,29 @@
+# syntax=docker/dockerfile:1.7
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+USER root
+ARG SDK_FORK_COMMIT
+ARG CANVAS_FORK_COMMIT
+RUN uv pip install --system --no-deps --force-reinstall \
+    "git+https://github.com/pedrotecinf/software-agent-sdk@${SDK_FORK_COMMIT}#subdirectory=openhands-sdk" \
+    "git+https://github.com/pedrotecinf/software-agent-sdk@${SDK_FORK_COMMIT}#subdirectory=openhands-tools" \
+    "git+https://github.com/pedrotecinf/software-agent-sdk@${SDK_FORK_COMMIT}#subdirectory=openhands-workspace" \
+    "git+https://github.com/pedrotecinf/software-agent-sdk@${SDK_FORK_COMMIT}#subdirectory=openhands-agent-server"
+COPY frontend/ /opt/agent-canvas/frontend/
+COPY fork/ /opt/agent-canvas/fork/
+RUN python /opt/agent-canvas/fork/patch_claude_resume.py \
+    /acp-node/lib/node_modules/@agentclientprotocol/claude-agent-acp/dist/acp-agent.js \
+    && python /opt/agent-canvas/fork/automation/patch_activity.py \
+    /usr/local/lib/python3.13/site-packages/openhands/automation/router.py \
+    /opt/agent-canvas/fork/automation/callback_metadata.py
+COPY fork/openhands-agent-server-launcher /usr/local/bin/openhands-agent-server
+RUN chmod 755 /usr/local/bin/openhands-agent-server
+ENV AGENT_CANVAS_BUILD_GIT_SHA=${CANVAS_FORK_COMMIT}
+ENV OPENHANDS_BUILD_GIT_SHA=${SDK_FORK_COMMIT}
+ENV OPENHANDS_BUILD_GIT_REF=upgrade/1.54.0-mcp-session-persistence
+LABEL org.opencontainers.image.source="https://github.com/pedrotecinf/OpenHands"
+LABEL org.opencontainers.image.revision="${CANVAS_FORK_COMMIT}"
+LABEL io.pedrotecinf.sdk.revision="${SDK_FORK_COMMIT}"
+HEALTHCHECK --interval=15s --timeout=12s --start-period=60s --retries=3 \
+    CMD python /opt/agent-canvas/fork/healthcheck.py
+USER openhands

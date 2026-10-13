@@ -27,6 +27,10 @@ COPY fork/openhands-agent-server-launcher /usr/local/bin/openhands-agent-server
 RUN chmod 755 /usr/local/bin/openhands-agent-server
 COPY fork/upgrade.json /opt/agent-canvas/fork/upgrade.json
 COPY fork/smoke_canary.py /opt/agent-canvas/fork/smoke_canary.py
+COPY fork/automation/ /opt/agent-canvas/fork/automation/
+RUN python /opt/agent-canvas/fork/automation/patch_activity.py \
+    /usr/local/lib/python3.13/site-packages/openhands/automation/router.py \
+    /opt/agent-canvas/fork/automation/callback_metadata.py
 COPY fork/healthcheck.py /opt/agent-canvas/fork/healthcheck.py
 ENV AGENT_CANVAS_BUILD_GIT_SHA=${CANVAS_FORK_COMMIT}
 ENV OPENHANDS_BUILD_GIT_SHA=${SDK_FORK_COMMIT}

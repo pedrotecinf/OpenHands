@@ -46,9 +46,9 @@ The session-key injection flag above is for this loopback-only canary UI.
 
 ## Deployment acceptance still required
 
-Before promotion, verify Claude/Codex cold resume with dedicated test credentials,
-review the two deployed automation activity overrides against Automation 1.19.3,
-and restore a consistent copy of persisted state into an isolated environment.
+Claude/Codex live cold resume, automation override compatibility, and offline
+state/workspace restoration checks have passed; see `homologation.md`.
+Before promotion, capture the final consistent backup during an idle window.
 Preserve encryption identity, provider session files, GitHub bot configuration,
 workspace files, and historical message cursors. Inventory temporary worktrees
 as well as persistent volumes. Schedule cutover only when production work is idle,
