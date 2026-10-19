@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("output", type=pathlib.Path)
 args = parser.parse_args()
 assert not subprocess.check_output(["git", "status", "--porcelain"], cwd=root).strip()
-frontend_root = root / "build/client"
+frontend_root = root / "build"
 assert (frontend_root / "index.html").exists(), "Build the frontend before packaging"
 commit = subprocess.check_output(
     ["git", "rev-parse", "HEAD"], cwd=root, text=True
