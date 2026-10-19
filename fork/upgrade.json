@@ -1,9 +1,9 @@
 {
-  "canvasRelease": "1.27.1",
-  "sdkRelease": "1.54.0",
+  "canvasRelease": "1.28.0",
+  "sdkRelease": "1.55.1",
   "sdkRepository": "https://github.com/pedrotecinf/software-agent-sdk",
-  "sdkCommit": "9f850bf8b3f7a785d5d833dd1e3af1c31f96028d",
-  "baseImage": "ghcr.io/openhands/agent-canvas@sha256:91b7a217dcbefe8c10562523b043458ed1dfaf8ba770194b319fe754cee03f23",
-  "typescriptClientIntegrity": "sha512-E74w5YHSAhx6yob98AYdUysfdoZbMNt9J6MuqYmczo0pafYqEPolfMRXsGgfmgHWpMkJNQFU9UywE2jzLEYRcw==",
+  "sdkCommit": "ff5eed627cfaf4c7498ba4660bf712d6eb9293ee",
+  "baseImage": "ghcr.io/openhands/agent-canvas@sha256:c213b641aebc3b297217a91751e66e442b185a79b8ceb8671a72064c0cf13fb6",
+  "typescriptClientIntegrity": "sha512-WWowBytQBmEwoKqwRzsuN+6yghOprmDF5Gjt+o+8A2rxQX7CX85Zc02Kpgi40PllOok8hGd6cxUgUdVotkTjzw==",
   "productionApproved": false
 }

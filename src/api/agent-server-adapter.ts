@@ -1,3 +1,6 @@
+import i18n, { OPENHANDS_I18N_NAMESPACE } from "#/i18n";
+import { I18nKey } from "#/i18n/declaration";
+import { hasPluginParameters } from "#/utils/plugin-parameters";
 import {
   ACP_SETTINGS_KEYS,
   HOOK_EVENT_FIELDS,
@@ -70,6 +73,7 @@ import {
   LAUNCH_CHILD_CONVERSATION_TOOL_NAME,
 } from "./launch-child-conversation-client-tool";
 import { AUTOMATION_FORM_UPDATE_CLIENT_TOOL } from "./automation-form-client-tool";
+import { REQUEST_SECRET_CLIENT_TOOL } from "./request-secret-client-tool";
 import {
   buildPlanPath,
   LOCAL_PLANNER_PARENT_TAG_KEY,
@@ -241,10 +245,11 @@ async function fetchBackendServerInfo(): Promise<AgentServerInfo | null> {
   }
 }
 
-export async function fetchBackendRuntimeServicesInfo(): Promise<RuntimeServicesInfo | null> {
+/** Whether start requests accept `agent_launch_additions.llm_profile_ref`. */
+export async function backendSupportsLaunchLlmOverride(): Promise<boolean> {
   const serverInfo = await fetchBackendServerInfo();
-  return parseRuntimeServicesInfo(
-    (serverInfo as { runtime_services?: unknown } | null)?.runtime_services,
+  return (
+    serverInfo?.capabilities?.includes("agent_launch_pipeline_v1") ?? false
   );
 }
 
@@ -1135,6 +1140,13 @@ function buildConfiguredConversationSettings(options: {
     workingDir,
     executionRuntime,
   } = options;
+  if (hasPluginParameters(plugins)) {
+    throw new Error(
+      i18n.t(I18nKey.LAUNCH$PARAMETERS_UNSUPPORTED_LOCAL, {
+        ns: OPENHANDS_I18N_NAMESPACE,
+      }),
+    );
+  }
   const conversationSettings = toRecord(settings.conversation_settings);
   const initialMessage = buildInitialMessage(query, conversationInstructions);
 
@@ -1204,8 +1216,12 @@ type AgentSettingsStartConversationPayload = StartConversationPayloadBase & {
   // exclusive agent sources; the server resolves the profile server-side.
   agent_settings?: AgentSettingsPayload;
   agent_profile_id?: string;
-  // Appended to the profile-resolved agent's system-message suffix.
-  agent_launch_additions?: { system_message_suffix_append?: string };
+  agent_launch_additions?: {
+    // Appended to the profile-resolved agent's system-message suffix.
+    system_message_suffix_append?: string;
+    // Runs the profile with this LLM profile instead of its own.
+    llm_profile_ref?: string;
+  };
   agent?: never;
 };
 
@@ -1241,6 +1257,8 @@ export interface StartConversationOptions {
   // server-side) instead of an inline ``agent_settings`` dump (#3727).
   agentProfileId?: string;
   agentProfileKind?: AgentKind;
+  /** LLM profile the agent profile runs with instead of its own. */
+  llmProfileOverride?: string;
   titleLlmProfile?: string;
   runtimeServicesInfo?: RuntimeServicesInfo | null;
   executionRuntime?: AgentServerInfo["execution_runtime"];
@@ -1319,6 +1337,14 @@ export function buildStartConversationRequest(
   ]
     .filter((suffix): suffix is string => Boolean(suffix))
     .join("\n\n");
+  const launchAdditions = {
+    ...(profileLaunchSuffix
+      ? { system_message_suffix_append: profileLaunchSuffix }
+      : {}),
+    ...(options.llmProfileOverride
+      ? { llm_profile_ref: options.llmProfileOverride }
+      : {}),
+  };
   const acpServerTag = acpMode
     ? getAcpServerTag(sourceAgentSettings)
     : undefined;
@@ -1366,12 +1392,8 @@ export function buildStartConversationRequest(
     ...(options.agentProfileId
       ? {
           agent_profile_id: options.agentProfileId,
-          ...(profileLaunchSuffix
-            ? {
-                agent_launch_additions: {
-                  system_message_suffix_append: profileLaunchSuffix,
-                },
-              }
+          ...(Object.keys(launchAdditions).length > 0
+            ? { agent_launch_additions: launchAdditions }
             : {}),
         }
       : { agent_settings: agentSettings }),
@@ -1386,6 +1408,7 @@ export function buildStartConversationRequest(
         ? [
             CANVAS_UI_CLIENT_TOOL,
             LAUNCH_CHILD_CONVERSATION_CLIENT_TOOL,
+            REQUEST_SECRET_CLIENT_TOOL,
             ...(options.automationSetup
               ? [AUTOMATION_FORM_UPDATE_CLIENT_TOOL]
               : []),
@@ -1800,6 +1823,7 @@ export async function buildStartConversationRequestWithEncryptedSettings(options
   worktree?: boolean;
   agentProfileId?: string;
   agentProfileKind?: AgentKind;
+  llmProfileOverride?: string;
   titleLlmProfile?: string;
 }): Promise<Record<string, unknown>> {
   const [{ SecretsService }, { default: HooksService }] = await Promise.all([

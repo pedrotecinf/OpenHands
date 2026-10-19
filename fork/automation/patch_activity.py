@@ -1,11 +1,11 @@
-"""Apply only the deployed callback metadata behavior to Automation 1.19.3."""
+"""Apply only the deployed callback metadata behavior to Automation 1.21.0."""
 
 import argparse
 import hashlib
 from pathlib import Path
 
 
-UPSTREAM_SHA256 = "2f08f3369e79641499f784aa5359f31b97971696c63c5b3a57f8c64f0c7fd94a"
+UPSTREAM_SHA256 = "66ac72cd170b847317978c7ff2f699cc5782db2c0e13e7a4014fa6de2cdbec23"
 IMPORT = (
     "from openhands.automation.utils.callback_metadata import merge_callback_metadata\n"
 )

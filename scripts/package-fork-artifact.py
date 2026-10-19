@@ -14,15 +14,16 @@ parser = argparse.ArgumentParser()
 parser.add_argument("output", type=pathlib.Path)
 args = parser.parse_args()
 assert not subprocess.check_output(["git", "status", "--porcelain"], cwd=root).strip()
-assert (root / "build/index.html").exists(), "Build the frontend before packaging"
+frontend_root = root / "build/client"
+assert (frontend_root / "index.html").exists(), "Build the frontend before packaging"
 commit = subprocess.check_output(
     ["git", "rev-parse", "HEAD"], cwd=root, text=True
 ).strip()
 manifest = json.loads((root / "fork/upgrade.json").read_text())
 manifest["canvasCommit"] = commit
 frontend = {
-    str(p.relative_to(root / "build")): hashlib.sha256(p.read_bytes()).hexdigest()
-    for p in sorted((root / "build").rglob("*"))
+    str(p.relative_to(frontend_root)): hashlib.sha256(p.read_bytes()).hexdigest()
+    for p in sorted(frontend_root.rglob("*"))
     if p.is_file()
 }
 manifest["frontendTreeSha256"] = hashlib.sha256(
@@ -30,7 +31,7 @@ manifest["frontendTreeSha256"] = hashlib.sha256(
 ).hexdigest()
 with tarfile.open(args.output, "w:gz") as archive:
     archive.add(root / "docker/Dockerfile.fork-artifact", arcname="Dockerfile")
-    archive.add(root / "build", arcname="frontend")
+    archive.add(frontend_root, arcname="frontend")
     archive.add(root / "fork", arcname="fork")
     data = json.dumps(manifest, indent=2).encode()
     info = tarfile.TarInfo("artifact.json")
