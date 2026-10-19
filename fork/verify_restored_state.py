@@ -38,6 +38,7 @@ report = {
     "settings_valid": True,
     "encrypted_fields_verified": 0,
     "failures": [],
+    "lease_only_directories": [],
 }
 
 
@@ -63,6 +64,9 @@ for path in [
     verify_encryption(json.loads(path.read_text()))
 for directory in sorted((root / "agent-canvas/conversations").iterdir()):
     if not directory.is_dir():
+        continue
+    if {path.name for path in directory.iterdir()} == {".owner_lease.lock"}:
+        report["lease_only_directories"].append(directory.name)
         continue
     try:
         stage = "metadata"
